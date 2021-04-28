@@ -8,6 +8,7 @@ import chess.engine.move.Move;
 import chess.engine.move.Move.PawnAttackMove;
 import chess.engine.move.Move.PawnJump;
 import chess.engine.move.Move.PawnMove;
+import chess.engine.move.MoveTransition;
 import chess.engine.player.Player;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -38,20 +39,32 @@ public class Pawn extends Piece {
             if(currentCandidateOffset == 8 && !candidateDestinationTile.isTileOccupied()) {
                 //TODO more work to do here (deal with promotions)
                 Move move = new PawnMove(board, this, candidateDestinationCoordinate);
-                if(!Player.doesMoveExposeKing(move, board)) {
+                boolean hasMoved = this.getHasMoved();
+                Board transitionBoard = move.execute();
+                if(!transitionBoard.getCurrentPlayer().getOpponent().isInCheck()) {
                     legalMoves.add(move);
                 }
-            } else if(currentCandidateOffset == 16 && !this.getHasMoved() &&
-                    ((BoardUtils.SECOND_ROW[this.getPiecePosition()] && this.getAlliance().isBlack()) ||
-                            (BoardUtils.SEVENTH_ROW[this.getPiecePosition()] && this.getAlliance().isWhite()))) {
-                int behindCandidateDestinationCoordinate = this.getPiecePosition() + (this.getAlliance().getDirection() * 8);
-                Tile behindCandidateDestinationTile = board.getTile(behindCandidateDestinationCoordinate);
-                if(!behindCandidateDestinationTile.isTileOccupied() && !candidateDestinationTile.isTileOccupied()){
-                    Move move = new PawnJump(board, this, candidateDestinationCoordinate);
-                    if(!Player.doesMoveExposeKing(move, board)) {
-                        legalMoves.add(move);
+                this.setHasMoved(hasMoved);
+            } else if(currentCandidateOffset == 16) {
+                if(!this.getHasMoved()) {
+                    if ((BoardUtils.SECOND_ROW[this.getPiecePosition()] && this.getAlliance().isBlack()) ||
+                            (BoardUtils.SEVENTH_ROW[this.getPiecePosition()] && this.getAlliance().isWhite())) {
+                        int behindCandidateDestinationCoordinate = this.getPiecePosition() + (this.getAlliance().getDirection() * 8);
+                        Tile behindCandidateDestinationTile = board.getTile(behindCandidateDestinationCoordinate);
+                        if (!behindCandidateDestinationTile.isTileOccupied()) {
+                            if (!candidateDestinationTile.isTileOccupied()) {
+                                Move move = new PawnJump(board, this, candidateDestinationCoordinate);
+                                boolean hasMoved = this.getHasMoved();
+                                Board transitionBoard = move.execute();
+                                if(!transitionBoard.getCurrentPlayer().getOpponent().isInCheck()) {
+                                    legalMoves.add(move);
+                                }
+                                this.setHasMoved(hasMoved);
+                            }
+                        }
                     }
                 }
+                System.out.println("Piece has moved");
             } else if(currentCandidateOffset == 7 &&
                     !((BoardUtils.EIGHTH_COLUMN[this.getPiecePosition()] && this.getAlliance().isWhite()) ||
                             (BoardUtils.FIRST_COLUMN[this.getPiecePosition()] && this.getAlliance().isBlack()))){
@@ -60,9 +73,12 @@ public class Pawn extends Piece {
                     if(this.getAlliance() != pieceAtDestination.getAlliance()) {
                         //TODO more to do here (attacking into promotion)
                         Move move = new PawnAttackMove(board, this, candidateDestinationCoordinate, pieceAtDestination);
-                        if(!Player.doesMoveExposeKing(move, board)) {
-                            legalMoves.add(move);
+                        boolean hasMoved = this.getHasMoved();
+                        Board transitionBoard = move.execute();
+                        if(!transitionBoard.getCurrentPlayer().getOpponent().isInCheck()) {
+                            legalMoves.add(new PawnAttackMove(board, this, candidateDestinationCoordinate, pieceAtDestination));
                         }
+                        this.setHasMoved(hasMoved);
                     }
                 }
             } else if(currentCandidateOffset == 9 &&
@@ -73,9 +89,12 @@ public class Pawn extends Piece {
                     if(this.getAlliance() != pieceAtDestination.getAlliance()) {
                         //TODO more to do here (attacking into promotion)
                         Move move = new PawnAttackMove(board, this, candidateDestinationCoordinate, pieceAtDestination);
-                        if(!Player.doesMoveExposeKing(move, board)) {
-                            legalMoves.add(move);
+                        boolean hasMoved = this.getHasMoved();
+                        Board transitionBoard = move.execute();
+                        if(!transitionBoard.getCurrentPlayer().getOpponent().isInCheck()) {
+                            legalMoves.add(new PawnAttackMove(board, this, candidateDestinationCoordinate, pieceAtDestination));
                         }
+                        this.setHasMoved(hasMoved);
                     }
                 }
             }

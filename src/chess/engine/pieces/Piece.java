@@ -35,8 +35,8 @@ public abstract class Piece {
         return this.pieceType;
     }
 
-    public void setHasMoved() {
-        this.hasMoved = true;
+    public void setHasMoved(boolean hasMoved) {
+        this.hasMoved = hasMoved;
     }
 
     public boolean getHasMoved() {

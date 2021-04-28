@@ -39,17 +39,23 @@ public class Rook extends Piece {
                     Tile destinationTile = board.getTile(potentialLocation);
                     if (!destinationTile.isTileOccupied()) {
                         Move move = new StandardMove(board, this, potentialLocation);
-                        if(!Player.doesMoveExposeKing(move, board)) {
+                        boolean hasMoved = this.getHasMoved();
+                        Board checkBoard = move.execute();
+                        if(!checkBoard.getCurrentPlayer().getOpponent().isInCheck()) {
                             legalMoves.add(move);
                         }
+                        this.setHasMoved(hasMoved);
                     } else {
                         Piece pieceAtLocation = destinationTile.getPiece();
                         Alliance alliance = pieceAtLocation.getAlliance();
                         if (alliance != this.getAlliance()) {
                             Move move = new CaptureMove(board, this, potentialLocation, pieceAtLocation);
-                            if(!Player.doesMoveExposeKing(move, board)) {
+                            boolean hasMoved = this.getHasMoved();
+                            Board checkBoard = move.execute();
+                            if(!checkBoard.getCurrentPlayer().getOpponent().isInCheck()) {
                                 legalMoves.add(move);
                             }
+                            this.setHasMoved(hasMoved);
                         }
                         break;
                     }

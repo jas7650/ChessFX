@@ -40,7 +40,8 @@ public class Bishop extends Piece {
                     Tile destinationTile = board.getTile(potentialLocation);
                     if(!destinationTile.isTileOccupied()) {
                         Move move = new StandardMove(board, this, potentialLocation);
-                        if(!Player.doesMoveExposeKing(move, board)) {
+                        Board checkBoard = move.execute();
+                        if(!checkBoard.getCurrentPlayer().getOpponent().isInCheck()) {
                             legalMoves.add(move);
                         }
                     } else {
@@ -48,7 +49,8 @@ public class Bishop extends Piece {
                         Alliance alliance = pieceAtLocation.getAlliance();
                         if(alliance != this.getAlliance()) {
                             Move move = new CaptureMove(board, this, potentialLocation, pieceAtLocation);
-                            if(!Player.doesMoveExposeKing(move, board)) {
+                            Board checkBoard = move.execute();
+                            if(!checkBoard.getCurrentPlayer().getOpponent().isInCheck()) {
                                 legalMoves.add(move);
                             }
                         }

@@ -7,12 +7,7 @@ import chess.engine.board.Tile;
 import chess.engine.move.Move;
 import chess.engine.move.Move.CaptureMove;
 import chess.engine.move.Move.StandardMove;
-import chess.engine.player.Player;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -40,7 +35,8 @@ public class Queen extends Piece {
                     Tile destinationTile = board.getTile(potentialLocation);
                     if (!destinationTile.isTileOccupied()) {
                         Move move = new StandardMove(board, this, potentialLocation);
-                        if(!Player.doesMoveExposeKing(move, board)) {
+                        Board checkBoard = move.execute();
+                        if(!checkBoard.getCurrentPlayer().getOpponent().isInCheck()) {
                             legalMoves.add(move);
                         }
                     } else {
@@ -48,7 +44,8 @@ public class Queen extends Piece {
                         Alliance alliance = pieceAtLocation.getAlliance();
                         if (alliance != this.getAlliance()) {
                             Move move = new CaptureMove(board, this, potentialLocation, pieceAtLocation);
-                            if(!Player.doesMoveExposeKing(move, board)) {
+                            Board checkBoard = move.execute();
+                            if(!checkBoard.getCurrentPlayer().getOpponent().isInCheck()) {
                                 legalMoves.add(move);
                             }
                         }

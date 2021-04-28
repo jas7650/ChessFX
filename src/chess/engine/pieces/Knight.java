@@ -41,7 +41,8 @@ public class Knight extends Piece {
                 final Tile candidateDestinationTile = board.getTile(candidateDestinationCoordinate);
                 if(!candidateDestinationTile.isTileOccupied()) {
                     Move move = new StandardMove(board, this, candidateDestinationCoordinate);
-                    if(!Player.doesMoveExposeKing(move, board)) {
+                    Board checkBoard = move.execute();
+                    if(!checkBoard.getCurrentPlayer().getOpponent().isInCheck()) {
                         legalMoves.add(move);
                     }
                 } else {
@@ -49,7 +50,8 @@ public class Knight extends Piece {
                     final Alliance pieceAlliance = pieceAtDestination.getAlliance();
                     if(this.getAlliance() != pieceAlliance) {
                         Move move = new CaptureMove(board, this, candidateDestinationCoordinate, pieceAtDestination);
-                        if(!Player.doesMoveExposeKing(move, board) && ! Player.leavesKingInCheck(move, board)) {
+                        Board checkBoard = move.execute();
+                        if(!checkBoard.getCurrentPlayer().getOpponent().isInCheck()) {
                             legalMoves.add(move);
                         }
                     }

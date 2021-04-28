@@ -41,14 +41,24 @@ public class King extends Piece {
                 if (BoardUtils.isValidTileCoordinate(potentialLocation)) {
                     Tile destinationTile = board.getTile(potentialLocation);
                     if (!destinationTile.isTileOccupied()) {
-                        if(!Player.isTileAttacked(destinationTile.getLocation(), board, this.getAlliance())) {
-                            legalMoves.add(new StandardMove(board, this, potentialLocation));
+                        Move move = new StandardMove(board, this, potentialLocation);
+                        boolean hasMoved = this.getHasMoved();
+                        Board transitionBoard = move.execute();
+                        if(!transitionBoard.getCurrentPlayer().getOpponent().isInCheck()) {
+                            legalMoves.add(move);
                         }
+                        this.setHasMoved(hasMoved);
                     } else {
                         Piece pieceAtLocation = destinationTile.getPiece();
                         Alliance alliance = pieceAtLocation.getAlliance();
-                        if (alliance != this.getAlliance() && !Player.isTileAttacked(destinationTile.getLocation(), board, this.getAlliance())) {
-                            legalMoves.add(new CaptureMove(board, this, potentialLocation, pieceAtLocation));
+                        if (alliance != this.getAlliance()) {
+                            Move move = new CaptureMove(board, this, potentialLocation, pieceAtLocation);
+                            boolean hasMoved = this.getHasMoved();
+                            Board transitionBoard = move.execute();
+                            if(!transitionBoard.getCurrentPlayer().getOpponent().isInCheck()) {
+                                legalMoves.add(move);
+                            }
+                            this.setHasMoved(hasMoved);
                         }
                     }
                 }

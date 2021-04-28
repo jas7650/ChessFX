@@ -93,7 +93,7 @@ public abstract class Move {
             builder.setPiece(piece);
         }
         builder.setPiece(this.piece.movePiece(this));
-        this.getMovedPiece().setHasMoved();
+        this.getMovedPiece().setHasMoved(true);
         builder.setMoveMaker(this.board.getCurrentPlayer().getOpponent().getAlliance());
         return builder.build();
     }
@@ -176,7 +176,7 @@ public abstract class Move {
                 }
             }
             builder.setPiece(this.piece.movePiece(this));
-            this.getMovedPiece().setHasMoved();
+            this.getMovedPiece().setHasMoved(true);
             builder.setMoveMaker(this.board.getCurrentPlayer().getOpponent().getAlliance());
             return builder.build();
         }
@@ -241,7 +241,7 @@ public abstract class Move {
                 builder.setPiece(piece);
             }
             final Pawn movedPawn = (Pawn) this.piece.movePiece(this);
-            movedPawn.setHasMoved();
+            movedPawn.setHasMoved(true);
             builder.setPiece(movedPawn);
             builder.setEnPassantPawn(movedPawn);
             builder.setMoveMaker(this.board.getCurrentPlayer().getOpponent().getAlliance());
@@ -297,8 +297,8 @@ public abstract class Move {
             for (final Piece piece : this.board.getCurrentPlayer().getOpponent().getActivePieces()) {
                 builder.setPiece(piece);
             }
-            this.getCastleRook().setHasMoved();
-            this.getMovedPiece().setHasMoved();
+            this.getCastleRook().setHasMoved(true);
+            this.getMovedPiece().setHasMoved(true);
             builder.setPiece(this.piece.movePiece(this));
             builder.setPiece(new Rook(this.castleRookDestination, this.castleRook.getAlliance()));
             builder.setMoveMaker(this.board.getCurrentPlayer().getOpponent().getAlliance());
