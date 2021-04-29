@@ -64,37 +64,42 @@ public class Pawn extends Piece {
                         }
                     }
                 }
-                System.out.println("Piece has moved");
             } else if(currentCandidateOffset == 7 &&
                     !((BoardUtils.EIGHTH_COLUMN[this.getPiecePosition()] && this.getAlliance().isWhite()) ||
                             (BoardUtils.FIRST_COLUMN[this.getPiecePosition()] && this.getAlliance().isBlack()))){
                 if(candidateDestinationTile.isTileOccupied()) {
-                    final Piece pieceAtDestination = candidateDestinationTile.getPiece();
-                    if(this.getAlliance() != pieceAtDestination.getAlliance()) {
-                        //TODO more to do here (attacking into promotion)
-                        Move move = new PawnAttackMove(board, this, candidateDestinationCoordinate, pieceAtDestination);
-                        boolean hasMoved = this.getHasMoved();
-                        Board transitionBoard = move.execute();
-                        if(!transitionBoard.getCurrentPlayer().getOpponent().isInCheck()) {
-                            legalMoves.add(new PawnAttackMove(board, this, candidateDestinationCoordinate, pieceAtDestination));
+                    if(!(isFirstColumnExclusion(candidateDestinationCoordinate, currentCandidateOffset) ||
+                            isEightColumnExclusion(candidateDestinationCoordinate, currentCandidateOffset))) {
+                        final Piece pieceAtDestination = candidateDestinationTile.getPiece();
+                        if (this.getAlliance() != pieceAtDestination.getAlliance()) {
+                            //TODO more to do here (attacking into promotion)
+                            Move move = new PawnAttackMove(board, this, candidateDestinationCoordinate, pieceAtDestination);
+                            boolean hasMoved = this.getHasMoved();
+                            Board transitionBoard = move.execute();
+                            if (!transitionBoard.getCurrentPlayer().getOpponent().isInCheck()) {
+                                legalMoves.add(new PawnAttackMove(board, this, candidateDestinationCoordinate, pieceAtDestination));
+                            }
+                            this.setHasMoved(hasMoved);
                         }
-                        this.setHasMoved(hasMoved);
                     }
                 }
             } else if(currentCandidateOffset == 9 &&
                     !((BoardUtils.FIRST_COLUMN[this.getPiecePosition()] && this.getAlliance().isWhite()) ||
                             (BoardUtils.EIGHTH_COLUMN[this.getPiecePosition()] && this.getAlliance().isBlack()))){
                 if(candidateDestinationTile.isTileOccupied()) {
-                    final Piece pieceAtDestination = candidateDestinationTile.getPiece();
-                    if(this.getAlliance() != pieceAtDestination.getAlliance()) {
-                        //TODO more to do here (attacking into promotion)
-                        Move move = new PawnAttackMove(board, this, candidateDestinationCoordinate, pieceAtDestination);
-                        boolean hasMoved = this.getHasMoved();
-                        Board transitionBoard = move.execute();
-                        if(!transitionBoard.getCurrentPlayer().getOpponent().isInCheck()) {
-                            legalMoves.add(new PawnAttackMove(board, this, candidateDestinationCoordinate, pieceAtDestination));
+                    if(!(isFirstColumnExclusion(candidateDestinationCoordinate, currentCandidateOffset) ||
+                            isEightColumnExclusion(candidateDestinationCoordinate, currentCandidateOffset))) {
+                        final Piece pieceAtDestination = candidateDestinationTile.getPiece();
+                        if (this.getAlliance() != pieceAtDestination.getAlliance()) {
+                            //TODO more to do here (attacking into promotion)
+                            Move move = new PawnAttackMove(board, this, candidateDestinationCoordinate, pieceAtDestination);
+                            boolean hasMoved = this.getHasMoved();
+                            Board transitionBoard = move.execute();
+                            if (!transitionBoard.getCurrentPlayer().getOpponent().isInCheck()) {
+                                legalMoves.add(new PawnAttackMove(board, this, candidateDestinationCoordinate, pieceAtDestination));
+                            }
+                            this.setHasMoved(hasMoved);
                         }
-                        this.setHasMoved(hasMoved);
                     }
                 }
             }
