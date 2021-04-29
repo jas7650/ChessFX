@@ -151,18 +151,22 @@ public class BoardGUI extends Application{
     }
 
     public void movePiece(Board board, Move move) throws FileNotFoundException {
-        pieces.getChildren().remove(move.getDestinationCoordinate());
         Image image;
         image = board.getTile(move.getDestinationCoordinate()).getPiece().getPieceType().getImage(board.getTile(move.getDestinationCoordinate()).getPiece().getAlliance());
         ImageView imageView = new ImageView(image);
         imageView.setFitHeight(100);
         imageView.setFitWidth(100);
-        pieces.getChildren().add(move.getDestinationCoordinate(), imageView);
+        pieces.getChildren().set(move.getDestinationCoordinate(), imageView);
 
-        pieces.getChildren().remove(move.getCurrentCoordinate());
         Rectangle rectangle = new Rectangle();
         rectangle.setVisible(false);
-        pieces.getChildren().add(move.getCurrentCoordinate(), rectangle);
+        pieces.getChildren().set(move.getCurrentCoordinate(), rectangle);
+
+        if(move.isEnPassantMove()) {
+            Rectangle rectangle1 = new Rectangle();
+            rectangle.setVisible(false);
+            pieces.getChildren().set(move.getAttackedPiece().getPiecePosition(), rectangle1);
+        }
 
         if(move.isCastlingMove()) {
             pieces.getChildren().remove(move.getCastleRookStart());

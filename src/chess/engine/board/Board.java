@@ -17,6 +17,7 @@ public class Board {
     private final BlackPlayer blackPlayer;
     private final Player currentPlayer;
     private final Move transitionMove;
+    private Builder builder;
 
     public Board(Builder builder) {
         this.board = createGameBoard(builder);
@@ -26,6 +27,7 @@ public class Board {
         this.blackPlayer = new BlackPlayer(this);
         this.currentPlayer = builder.nextMoveMaker.choosePlayer(this.whitePlayer, this.blackPlayer);
         this.transitionMove = builder.transitionMove != null ? builder.transitionMove : Move.MoveFactory.getNullMove();
+        this.builder = builder;
     }
 
     private static Collection<Piece> calculateActivePieces(List<Tile> gameBoard, Alliance alliance) {
@@ -39,6 +41,10 @@ public class Board {
             }
         }
         return Collections.unmodifiableList(activePieces);
+    }
+
+    public Builder getBuilder() {
+        return this.builder;
     }
 
     private static List<Tile> createGameBoard(Builder builder) {
@@ -150,6 +156,10 @@ public class Board {
             return this;
         }
 
+        public Pawn getEnPassantPawn() {
+            return this.enPassantPawn;
+        }
+
         public Builder setPiece(Piece piece) {
             this.boardConfig.put(piece.getPiecePosition(), piece);
             return this;
@@ -159,6 +169,7 @@ public class Board {
             this.transitionMove = transitionMove;
             return this;
         }
+
         public Board build() {
             return new Board(this);
         }

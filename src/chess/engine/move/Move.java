@@ -82,6 +82,10 @@ public abstract class Move {
         return false;
     }
 
+    public boolean isEnPassantMove() {
+        return false;
+    }
+
     public Board execute() {
         final Builder builder = new Builder();
         for(final Piece piece : this.board.getCurrentPlayer().getActivePieces()) {
@@ -220,6 +224,17 @@ public abstract class Move {
 
         public PawnAttackMove(Board board, Piece piece, int endPosition, Piece pieceAtLocation) {
             super(board, piece, endPosition, pieceAtLocation);
+        }
+    }
+
+    public static class PawnEnPassantMove extends CaptureMove {
+        public PawnEnPassantMove(Board board, Piece piece, int endPosition, Piece pieceTaken) {
+            super(board, piece, endPosition, pieceTaken);
+        }
+
+        @Override
+        public boolean isEnPassantMove() {
+            return true;
         }
     }
 
