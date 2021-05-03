@@ -32,6 +32,7 @@ public class King extends Piece {
     public Collection<Move> calculateLegalMoves(Board board) {
         List<Move> legalMoves = new ArrayList<>();
         for(int moveDirection : moveDirections) {
+            System.out.println("Checking direction: " + moveDirection);
             int potentialLocation = this.getPiecePosition() + moveDirection;
             if (BoardUtils.isValidTileCoordinate(potentialLocation)) {
                 if (isFirstColumnExclusion(potentialLocation, moveDirection) ||
@@ -45,6 +46,7 @@ public class King extends Piece {
                         boolean hasMoved = this.getHasMoved();
                         Board transitionBoard = move.execute();
                         if(!transitionBoard.getCurrentPlayer().getOpponent().isInCheck()) {
+                            System.out.println("Move added to legal moves");
                             legalMoves.add(move);
                         }
                         this.setHasMoved(hasMoved);
@@ -56,6 +58,7 @@ public class King extends Piece {
                             boolean hasMoved = this.getHasMoved();
                             Board transitionBoard = move.execute();
                             if(!transitionBoard.getCurrentPlayer().getOpponent().isInCheck()) {
+                                System.out.println("Move added to legal moves");
                                 legalMoves.add(move);
                             }
                             this.setHasMoved(hasMoved);

@@ -45,6 +45,7 @@ public abstract class Player {
                             if (!((BoardUtils.FIRST_COLUMN[potentialThreatLocation] && direction == -9) ||
                                     (BoardUtils.EIGHTH_COLUMN[potentialThreatLocation] && direction == -7))) {
                                 if (direction == -7 || direction == -9) {
+                                    System.out.println("Attacked from: " + potentialThreatLocation);
                                     return true;
                                 }
                             }
@@ -52,6 +53,7 @@ public abstract class Player {
                             if (!((BoardUtils.FIRST_COLUMN[potentialThreatLocation] && direction == 9) ||
                                     (BoardUtils.EIGHTH_COLUMN[potentialThreatLocation] && direction == 7))) {
                                 if (direction == 7 || direction == 9) {
+                                    System.out.println("Attacked from: " + potentialThreatLocation);
                                     return true;
                                 }
                             }
@@ -75,6 +77,7 @@ public abstract class Player {
                     if (board.getTile(potentialThreatLocation).isTileOccupied()) {
                         if (board.getTile(potentialThreatLocation).getPiece().getPieceType() == PieceType.KNIGHT &&
                                 alliance != board.getTile(potentialThreatLocation).getPiece().getAlliance()) {
+                            System.out.println("Attacked from: " + potentialThreatLocation);
                             return true;
                         }
                     }
@@ -98,6 +101,7 @@ public abstract class Player {
                         if (alliance != board.getTile(potentialThreatLocation).getPiece().getAlliance()) {
                             if(board.getTile(potentialThreatLocation).getPiece().getPieceType() == PieceType.QUEEN ||
                             board.getTile(potentialThreatLocation).getPiece().getPieceType() == PieceType.ROOK) {
+                                System.out.println("Attacked from: " + potentialThreatLocation);
                                 return true;
                             }
                         }
@@ -125,6 +129,7 @@ public abstract class Player {
                         if (alliance != board.getTile(potentialThreatLocation).getPiece().getAlliance()) {
                             if(board.getTile(potentialThreatLocation).getPiece().getPieceType() == PieceType.QUEEN ||
                                     board.getTile(potentialThreatLocation).getPiece().getPieceType() == PieceType.BISHOP) {
+                                System.out.println("Attacked from: " + potentialThreatLocation);
                                 return true;
                             }
                         }
@@ -147,16 +152,17 @@ public abstract class Player {
     }
 
     public boolean isInCheck() {
+        System.out.println("Checking " + this.getAlliance().toString() + " king");
         return isTileAttacked(this.playerKing.getPiecePosition(), board, this.getAlliance());
     }
 
     //TODO implement methods below!!!
     public boolean isInCheckMate() {
-        return isTileAttacked(this.playerKing.getPiecePosition(), board, this.getAlliance()) && !hasEscapeMoves();
+        return isInCheck() && !hasEscapeMoves();
     }
 
     public boolean isInStaleMate() {
-        return !isTileAttacked(this.playerKing.getPiecePosition(), board, this.getAlliance()) && !hasEscapeMoves();
+        return !isInCheck() && !hasEscapeMoves();
     }
 
     protected boolean hasEscapeMoves() {

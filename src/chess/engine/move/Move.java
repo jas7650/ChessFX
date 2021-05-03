@@ -86,6 +86,14 @@ public abstract class Move {
         return false;
     }
 
+    public boolean isPromotionMove() {
+        return false;
+    }
+
+    public PieceType getChosenType() {
+        return null;
+    }
+
     public Board execute() {
         final Builder builder = new Builder();
         for(final Piece piece : this.board.getCurrentPlayer().getActivePieces()) {
@@ -160,7 +168,7 @@ public abstract class Move {
     }
 
     public static class CaptureMove extends Move {
-        private Piece pieceAtLocation;
+        protected Piece pieceAtLocation;
         public CaptureMove(Board board, Piece piece, int endPosition, Piece pieceAtLocation) {
             super(board, piece, endPosition);
             this.pieceAtLocation = pieceAtLocation;
@@ -220,10 +228,84 @@ public abstract class Move {
         }
     }
 
+    public static final class PawnMovePromotion extends Move {
+        private PieceType chosenType;
+        public PawnMovePromotion(Board board, Piece piece, int endPosition, PieceType chosenType) {
+            super(board, piece, endPosition);
+            this.chosenType = chosenType;
+        }
+
+        @Override
+        public Board execute() {
+            final Builder builder = new Builder();
+            for(final Piece piece : this.board.getCurrentPlayer().getActivePieces()) {
+                if(!this.piece.equals(piece)) {
+                    builder.setPiece(piece);
+                }
+            }
+            for(final Piece piece : this.board.getCurrentPlayer().getOpponent().getActivePieces()) {
+                builder.setPiece(piece);
+            }
+            final Pawn movedPawn = (Pawn) this.piece.movePiece(this);
+            final Piece newPiece = movedPawn.promotePiece(this, chosenType);
+            builder.setPiece(newPiece);
+            builder.setMoveMaker(this.board.getCurrentPlayer().getOpponent().getAlliance());
+            return builder.build();
+        }
+
+        @Override
+        public boolean isPromotionMove() {
+            return true;
+        }
+
+        @Override
+        public PieceType getChosenType() {
+            return this.chosenType;
+        }
+    }
+
     public static class PawnAttackMove extends CaptureMove {
 
         public PawnAttackMove(Board board, Piece piece, int endPosition, Piece pieceAtLocation) {
             super(board, piece, endPosition, pieceAtLocation);
+        }
+    }
+
+    public static final class PawnAttackMovePromotion extends PawnAttackMove {
+        private PieceType chosenType;
+        public PawnAttackMovePromotion(Board board, Piece piece, int endPosition, Piece pieceAtLocation, PieceType chosenType) {
+            super(board, piece, endPosition, pieceAtLocation);
+            this.chosenType = chosenType;
+        }
+
+        @Override
+        public Board execute() {
+            final Builder builder = new Builder();
+            for(final Piece piece : this.board.getCurrentPlayer().getActivePieces()) {
+                if(!this.piece.equals(piece)) {
+                    builder.setPiece(piece);
+                }
+            }
+            for(final Piece piece : this.board.getCurrentPlayer().getOpponent().getActivePieces()) {
+                if(!this.pieceAtLocation.equals(piece)) {
+                    builder.setPiece(piece);
+                }
+            }
+            final Pawn movedPawn = (Pawn) this.piece.movePiece(this);
+            final Piece newPiece = movedPawn.promotePiece(this, chosenType);
+            builder.setPiece(newPiece);
+            builder.setMoveMaker(this.board.getCurrentPlayer().getOpponent().getAlliance());
+            return builder.build();
+        }
+
+        @Override
+        public boolean isPromotionMove() {
+            return true;
+        }
+
+        @Override
+        public PieceType getChosenType() {
+            return this.chosenType;
         }
     }
 
@@ -377,6 +459,17 @@ public abstract class Move {
             for(final Move move : board.getTile(currentPosition).getPiece().calculateLegalMoves(board)) {
                 if(move.getCurrentCoordinate() == currentPosition &&
                         move.getDestinationCoordinate() == destinationPosition) {
+                    return move;
+                }
+            }
+            return NULL_MOVE;
+        }
+
+        public static Move createPromotionMove(Board board, int currentPosition, int destinationPosition, PieceType pieceType) {
+            for(final Move move : board.getTile(currentPosition).getPiece().calculateLegalMoves(board)) {
+                if(move.getCurrentCoordinate() == currentPosition &&
+                        move.getDestinationCoordinate() == destinationPosition &&
+                        move.getChosenType() == pieceType) {
                     return move;
                 }
             }

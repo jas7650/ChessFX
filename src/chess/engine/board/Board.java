@@ -104,6 +104,14 @@ public class Board {
         return false;
     }
 
+    public Player getPlayer(Alliance alliance) {
+        if(alliance == Alliance.WHITE) {
+            return this.whitePlayer;
+        } else {
+            return this.blackPlayer;
+        }
+    }
+
     public Player getPlayerInCheck() {
         if(this.getBlackPlayer().isInCheck()) {
             return this.getBlackPlayer();
@@ -115,6 +123,18 @@ public class Board {
     public Tile getTile(int location) {
         return this.board.get(location);
     }
+
+//    public Collection<Move> calculateAttacksOnTile(int location, Alliance friendlyAlliance) {
+//        List<Move> attacksOnTile = new ArrayList<>();
+//        for(Move move : getPlayer(friendlyAlliance).getPlayerLegalMoves()) {
+//            if(move.getDestinationCoordinate() == location) {
+//                if(!(move instanceof Move.PawnJump)) {
+//                    attacksOnTile.add(move);
+//                }
+//            }
+//        }
+//        return Collections.unmodifiableList(attacksOnTile);
+//    }
 
     public Collection<Piece> getWhitePieces() {
         return this.whitePieces;
