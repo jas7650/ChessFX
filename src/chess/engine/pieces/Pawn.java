@@ -25,8 +25,8 @@ public class Pawn extends Piece {
     public Collection<Move> calculateLegalMoves(Board board) {
         final List<Move> legalMoves = new ArrayList<>();
         for(final int currentCandidateOffset : moveDirections){
-            if(isFirstColumnExclusion(this.getPiecePosition(), currentCandidateOffset) ||
-                    isEightColumnExclusion(this.getPiecePosition(), currentCandidateOffset)) {
+            if(isFirstColumnExclusion(this.getPiecePosition(), currentCandidateOffset *this.getAlliance().getDirection()) ||
+                    isEightColumnExclusion(this.getPiecePosition(), currentCandidateOffset * this.getAlliance().getDirection())) {
                 continue;
             }
             final int candidateDestinationCoordinate = this.getPiecePosition() + (this.getAlliance().getDirection() * currentCandidateOffset);
@@ -43,13 +43,7 @@ public class Pawn extends Piece {
                         legalMoves.add(new PawnMovePromotion(board, this, candidateDestinationCoordinate, PieceType.BISHOP));
                         legalMoves.add(new PawnMovePromotion(board, this, candidateDestinationCoordinate, PieceType.ROOK));
                     } else {
-                        Move move = new PawnMove(board, this, candidateDestinationCoordinate);
-                        boolean hasMoved = this.getHasMoved();
-                        Board transitionBoard = move.execute();
-                        if (!transitionBoard.getCurrentPlayer().getOpponent().isInCheck()) {
-                            legalMoves.add(move);
-                        }
-                        this.setHasMoved(hasMoved);
+                        legalMoves.add(new PawnMove(board, this, candidateDestinationCoordinate));
                     }
                 }
                 continue;
@@ -68,13 +62,7 @@ public class Pawn extends Piece {
                     continue;
                 }
                 if (!candidateDestinationTile.isTileOccupied()) {
-                    Move move = new PawnJump(board, this, candidateDestinationCoordinate);
-                    boolean hasMoved = this.getHasMoved();
-                    Board transitionBoard = move.execute();
-                    if(!transitionBoard.getCurrentPlayer().getOpponent().isInCheck()) {
-                        legalMoves.add(move);
-                    }
-                    this.setHasMoved(hasMoved);
+                    legalMoves.add(new PawnJump(board, this, candidateDestinationCoordinate));
                 }
                 continue;
             }
@@ -93,19 +81,13 @@ public class Pawn extends Piece {
                     }
                 }
                 if(!candidateDestinationTile.isTileOccupied()){
-                    if(this.getAlliance() == Alliance.BLACK) {
-                        Move move = calculateBlackEnPassantMoves(board, candidateDestinationCoordinate, -1);
-                        if(move != NULL_MOVE) {
-                            legalMoves.add(move);
+                    if(board.getEnPassantPawn() != null &&
+                            board.getEnPassantPawn().getPiecePosition() ==
+                                    (this.getPiecePosition() + (this.getAlliance().getDirection()*-1))) {
+                        Piece pieceAtLocation = board.getEnPassantPawn();
+                        if(this.getAlliance() != pieceAtLocation.getAlliance()) {
+                            legalMoves.add(new PawnEnPassantMove(board, this, candidateDestinationCoordinate, pieceAtLocation));
                         }
-                        continue;
-                    }
-                    if(this.getAlliance() == Alliance.WHITE){
-                        Move move = calculateWhiteEnPassantMoves(board, candidateDestinationCoordinate, 1);
-                        if(move != NULL_MOVE) {
-                            legalMoves.add(move);
-                        }
-                        continue;
                     }
                 }
             }
@@ -127,22 +109,18 @@ public class Pawn extends Piece {
                     }
                 }
                 if(!candidateDestinationTile.isTileOccupied()){
-                    if(this.getAlliance() == Alliance.BLACK) {
-                        Move move = calculateBlackEnPassantMoves(board, candidateDestinationCoordinate, 1);
-                        if(move != NULL_MOVE) {
-                            legalMoves.add(move);
-                        }
-                        continue;
-                    }
-                    if(this.getAlliance() == Alliance.WHITE) {
-                        Move move = calculateWhiteEnPassantMoves(board, candidateDestinationCoordinate, -1);
-                        if(move != NULL_MOVE) {
-                            legalMoves.add(move);
+                    if(board.getEnPassantPawn() != null &&
+                    board.getEnPassantPawn().getPiecePosition() ==
+                            (this.getPiecePosition() - (this.getAlliance().getDirection()*-1))) {
+                        Piece pieceAtLocation = board.getEnPassantPawn();
+                        if(this.getAlliance() != pieceAtLocation.getAlliance()) {
+                            legalMoves.add(new PawnEnPassantMove(board, this, candidateDestinationCoordinate, pieceAtLocation));
                         }
                     }
                 }
             }
         }
+        this.legalMoves = legalMoves;
         return Collections.unmodifiableList(legalMoves);
     }
 
@@ -152,10 +130,10 @@ public class Pawn extends Piece {
                 (BoardUtils.FIRST_ROW[candidateDestinationCoordinate] && this.getAlliance() == Alliance.WHITE)) {
             Move move = calculatePawnAttackMoves(board, candidateDestinationCoordinate);
             if(move != NULL_MOVE) {
-                legalMoves.add(new PawnMovePromotion(board, this, candidateDestinationCoordinate, PieceType.KNIGHT));
-                legalMoves.add(new PawnMovePromotion(board, this, candidateDestinationCoordinate, PieceType.QUEEN));
-                legalMoves.add(new PawnMovePromotion(board, this, candidateDestinationCoordinate, PieceType.BISHOP));
-                legalMoves.add(new PawnMovePromotion(board, this, candidateDestinationCoordinate, PieceType.ROOK));
+                legalMoves.add(new PawnAttackMovePromotion(board, this, candidateDestinationCoordinate, board.getTile(candidateDestinationCoordinate).getPiece(), PieceType.KNIGHT));
+                legalMoves.add(new PawnAttackMovePromotion(board, this, candidateDestinationCoordinate, board.getTile(candidateDestinationCoordinate).getPiece(), PieceType.QUEEN));
+                legalMoves.add(new PawnAttackMovePromotion(board, this, candidateDestinationCoordinate, board.getTile(candidateDestinationCoordinate).getPiece(), PieceType.BISHOP));
+                legalMoves.add(new PawnAttackMovePromotion(board, this, candidateDestinationCoordinate, board.getTile(candidateDestinationCoordinate).getPiece(), PieceType.ROOK));
             }
         }
         return Collections.unmodifiableList(legalMoves);
@@ -165,63 +143,7 @@ public class Pawn extends Piece {
         Tile candidateDestinationTile = board.getTile(destination);
         final Piece pieceAtDestination = candidateDestinationTile.getPiece();
         if (this.getAlliance() != pieceAtDestination.getAlliance()) {
-            Move move = new PawnAttackMove(board, this, destination, pieceAtDestination);
-            boolean hasMoved = this.getHasMoved();
-            Board transitionBoard = move.execute();
-            this.setHasMoved(hasMoved);
-            if (!transitionBoard.getCurrentPlayer().getOpponent().isInCheck()) {
-                return new PawnAttackMove(board, this, destination, pieceAtDestination);
-            }
-        }
-        return NULL_MOVE;
-    }
-
-    public Move calculateBlackEnPassantMoves(Board board, int destination, int direction) {
-        if(!BoardUtils.FIFTH_ROW[this.getPiecePosition()]) {
-            return NULL_MOVE;
-        }
-        if (!board.getTile(this.getPiecePosition() + direction).isTileOccupied()) {
-            return NULL_MOVE;
-        }
-        if(board.getTile(this.getPiecePosition() + direction).getPiece().getPieceType() != PieceType.PAWN) {
-            return NULL_MOVE;
-        }
-        if(board.getTile(this.getPiecePosition() + direction).getPiece().getAlliance() != Alliance.WHITE) {
-            return NULL_MOVE;
-        }
-        if(board.getTile(this.getPiecePosition() + direction).getPiece().equals(board.getBuilder().getEnPassantPawn())) {
-            Move move = new PawnEnPassantMove(board, this, destination, board.getTile(this.getPiecePosition() + direction).getPiece());
-            boolean hasMoved = this.getHasMoved();
-            Board transitionBoard = move.execute();
-            this.setHasMoved(hasMoved);
-            if (!transitionBoard.getCurrentPlayer().getOpponent().isInCheck()) {
-                return new PawnEnPassantMove(board, this, destination, board.getTile(this.getPiecePosition() + direction).getPiece());
-            }
-        }
-        return NULL_MOVE;
-    }
-
-    public Move calculateWhiteEnPassantMoves(Board board, int destination, int direction) {
-        if(!BoardUtils.FOURTH_ROW[this.getPiecePosition()]) {
-            return NULL_MOVE;
-        }
-        if (!board.getTile(this.getPiecePosition() + direction).isTileOccupied()) {
-            return NULL_MOVE;
-        }
-        if(board.getTile(this.getPiecePosition() + direction).getPiece().getPieceType() != PieceType.PAWN) {
-            return NULL_MOVE;
-        }
-        if(board.getTile(this.getPiecePosition() + direction).getPiece().getAlliance() != Alliance.BLACK) {
-            return NULL_MOVE;
-        }
-        if(board.getTile(this.getPiecePosition() + direction).getPiece().equals(board.getBuilder().getEnPassantPawn())) {
-            Move move = new PawnEnPassantMove(board, this, destination, board.getTile(this.getPiecePosition() + direction).getPiece());
-            boolean hasMoved = this.getHasMoved();
-            Board transitionBoard = move.execute();
-            this.setHasMoved(hasMoved);
-            if (!transitionBoard.getCurrentPlayer().getOpponent().isInCheck()) {
-                return new PawnEnPassantMove(board, this, destination, board.getTile(this.getPiecePosition() + direction).getPiece());
-            }
+            return new PawnAttackMove(board, this, destination, pieceAtDestination);
         }
         return NULL_MOVE;
     }

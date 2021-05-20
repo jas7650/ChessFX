@@ -1,4 +1,4 @@
-package chess.gui.view;
+package chess.gui;
 
 import chess.engine.Alliance;
 import chess.engine.board.Board;
@@ -10,11 +10,7 @@ import chess.engine.move.MoveTransition;
 import chess.engine.pieces.Piece;
 import chess.engine.pieces.Piece.PieceType;
 import javafx.application.Application;
-import javafx.event.EventHandler;
-import javafx.geometry.Pos;
-import javafx.geometry.Rectangle2D;
 import javafx.scene.Scene;
-import javafx.scene.control.Button;
 import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -43,7 +39,6 @@ public class BoardGUI extends Application{
     private int checkLocation;
     private Collection<Move> legalMoves;
     private BorderPane borderPane;
-    private Button newGameButton;
     private PieceType promotionPieceType = null;
     private boolean isInPromotionSequence = false;
 
@@ -53,7 +48,7 @@ public class BoardGUI extends Application{
         primaryStage.setTitle("Chess Game");
         Board board = Board.createStartingGameBoard();
         boards[0] = board;
-        tiles = drawBoard(board);
+        tiles = drawTiles();
         pieces = addPieces(board);
         stackPane = new StackPane();
         stackPane.getChildren().addAll(tiles, pieces);
@@ -63,25 +58,22 @@ public class BoardGUI extends Application{
         borderPane.setTop(text);
         Scene scene = newScene(borderPane);
 
-        pieces.setOnMouseClicked(new EventHandler<MouseEvent>() {
-            @Override
-            public void handle(MouseEvent e) {
-                int col = (int) e.getX() / 100;
-                int row = (int) e.getY() / 100;
-                int location = (row * 8) + col;
-                Board lastBoard = boards[0];
-                if (e.getButton() == MouseButton.PRIMARY) {
-                    try {
-                        leftClickEvent(lastBoard, location);
-                    } catch (FileNotFoundException ex) {
-                        ex.printStackTrace();
-                    }
-                } else if (e.getButton() == MouseButton.SECONDARY) {
-                    rightClickEvent();
+        pieces.setOnMouseClicked(e -> {
+            int col = (int) e.getX() / 100;
+            int row = (int) e.getY() / 100;
+            int location = (row * 8) + col;
+            Board lastBoard = boards[0];
+            if (e.getButton() == MouseButton.PRIMARY) {
+                try {
+                    leftClickEvent(lastBoard, location);
+                } catch (FileNotFoundException ex) {
+                    ex.printStackTrace();
                 }
-
-                text.setText(string);
+            } else if (e.getButton() == MouseButton.SECONDARY) {
+                rightClickEvent();
             }
+
+            text.setText(string);
         });
 
         primaryStage.setScene(scene);
@@ -134,7 +126,7 @@ public class BoardGUI extends Application{
                     if((BoardUtils.FIRST_ROW[secondLocation] && movedPiece.getAlliance() == Alliance.WHITE) ||
                             (BoardUtils.EIGHTH_ROW[secondLocation] && movedPiece.getAlliance() == Alliance.BLACK)) {
                         this.isInPromotionSequence = true;
-                        showPromotionPieceTypes(lastBoard, movedPiece.getAlliance());
+                        startPromotionSequence(lastBoard, movedPiece.getAlliance());
                     } else {
                         Move move = MoveFactory.createMove(lastBoard, firstLocation, secondLocation);
                         tryMove(lastBoard, move);
@@ -149,7 +141,7 @@ public class BoardGUI extends Application{
                 if((BoardUtils.FIRST_ROW[secondLocation] && movedPiece.getAlliance() == Alliance.WHITE) ||
                         (BoardUtils.EIGHTH_ROW[secondLocation] && movedPiece.getAlliance() == Alliance.BLACK)) {
                     this.isInPromotionSequence = true;
-                    showPromotionPieceTypes(lastBoard, movedPiece.getAlliance());
+                    startPromotionSequence(lastBoard, movedPiece.getAlliance());
                 } else {
                     Move move = MoveFactory.createMove(lastBoard, firstLocation, secondLocation);
                     tryMove(lastBoard, move);
@@ -161,7 +153,7 @@ public class BoardGUI extends Application{
         }
     }
 
-    private void showPromotionPieceTypes(Board lastBoard, Alliance alliance) throws FileNotFoundException {
+    private void startPromotionSequence(Board lastBoard, Alliance alliance) throws FileNotFoundException {
         PieceType[] pieceTypes = {PieceType.QUEEN, PieceType.ROOK, PieceType.BISHOP, PieceType.KNIGHT};
         VBox vBox1 = new VBox();
         Text text1 = new Text();
@@ -199,6 +191,7 @@ public class BoardGUI extends Application{
                 if (row == 4) {
                     promotionPieceType = null;
                 }
+                isInPromotionSequence = false;
                 stackPane.getChildren().remove(2);
                 Move move = MoveFactory.createPromotionMove(lastBoard, firstLocation, secondLocation, promotionPieceType);
                 tryMove(lastBoard, move);
@@ -277,7 +270,9 @@ public class BoardGUI extends Application{
             rookView.setFitWidth(100);
             rookView.setFitHeight(100);
             pieces.getChildren().add(move.getCastleRookDestination(), rookView);
+            move.getCastleRook().setHasMoved(true);
         }
+        move.getMovedPiece().setHasMoved(true);
     }
 
     private void highlightSelectedTile(int location) {
@@ -292,13 +287,18 @@ public class BoardGUI extends Application{
 
     private void showLegalMoves(int firstLocation, Board board) {
         if(board.getTile(firstLocation).getPiece().getAlliance() == board.getCurrentPlayer().getAlliance()) {
-            legalMoves = board.getTile(firstLocation).getPiece().calculateLegalMoves(board);
+            legalMoves = board.getCurrentPlayer().getPlayerLegalMoves();
             for (Move move : legalMoves) {
-                int destination = move.getDestinationCoordinate();
-                Rectangle rectangle = (Rectangle) tiles.getChildren().get(destination);
-                Glow glow = new Glow();
-                glow.setLevel(1);
-                rectangle.setEffect(glow);
+                if(move.getCurrentCoordinate() == firstLocation) {
+                    MoveTransition transition = board.getCurrentPlayer().makeMove(move);
+                    if(transition.getMoveStatus().isDone()) {
+                        int destination = move.getDestinationCoordinate();
+                        Rectangle rectangle = (Rectangle) tiles.getChildren().get(destination);
+                        Glow glow = new Glow();
+                        glow.setLevel(1);
+                        rectangle.setEffect(glow);
+                    }
+                }
             }
         }
     }
@@ -334,7 +334,7 @@ public class BoardGUI extends Application{
         }
     }
 
-    private TilePane drawBoard(Board board) {
+    private TilePane drawTiles() {
         TilePane tilePane = new TilePane();
         tilePane.setPrefColumns(8);
         tilePane.setPrefRows(8);

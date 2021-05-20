@@ -17,129 +17,19 @@ import static chess.engine.move.Move.NULL_MOVE;
 public abstract class Player {
     protected final Board board;
     protected final King playerKing;
+    protected final boolean isInCheck;
+    protected Collection<Move> playerLegalMoves;
+    protected Collection<Move> castleMoves;
 
-    public Player(final Board board) {
+    public Player(final Board board, final Collection<Move> playerLegalMoves, final Collection<Move> opponentLegalMoves) {
         this.board = board;
         this.playerKing = establishKing();
-    }
-
-    public static boolean isTileAttacked(int position, Board board, Alliance alliance) {
-        boolean pawns, knights, diagonals, straights;
-        pawns = checkPawns(position, board, alliance);
-        knights = checkKnights(position, board, alliance);
-        diagonals = checkDiagonals(position, board, alliance);
-        straights = checkStraights(position, board, alliance);
-        return  pawns || knights || diagonals || straights;
-    }
-
-    private static boolean checkPawns(int position, Board board, Alliance alliance) {
-        int[] attackDirections = {-9, -7, 7, 9};
-
-        for(int direction : attackDirections) {
-            int potentialThreatLocation = position + direction;
-            if(BoardUtils.isValidTileCoordinate(potentialThreatLocation)) {
-                if (board.getTile(potentialThreatLocation).isTileOccupied()) {
-                    if (board.getTile(potentialThreatLocation).getPiece().getPieceType() == PieceType.PAWN &&
-                            alliance != board.getTile(potentialThreatLocation).getPiece().getAlliance()) {
-                        if (board.getTile(potentialThreatLocation).getPiece().getAlliance() == Alliance.BLACK) {
-                            if (!((BoardUtils.FIRST_COLUMN[potentialThreatLocation] && direction == -9) ||
-                                    (BoardUtils.EIGHTH_COLUMN[potentialThreatLocation] && direction == -7))) {
-                                if (direction == -7 || direction == -9) {
-                                    System.out.println("Attacked from: " + potentialThreatLocation);
-                                    return true;
-                                }
-                            }
-                        } else {
-                            if (!((BoardUtils.FIRST_COLUMN[potentialThreatLocation] && direction == 9) ||
-                                    (BoardUtils.EIGHTH_COLUMN[potentialThreatLocation] && direction == 7))) {
-                                if (direction == 7 || direction == 9) {
-                                    System.out.println("Attacked from: " + potentialThreatLocation);
-                                    return true;
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+        this.isInCheck = !calculateAttacksOnTile(this.playerKing.getPiecePosition(), opponentLegalMoves).isEmpty();
+        this.playerLegalMoves = playerLegalMoves;
+        this.castleMoves = calculateCastleMoves(playerLegalMoves, opponentLegalMoves);
+        if(!castleMoves.isEmpty()) {
+            playerLegalMoves.addAll(castleMoves);
         }
-        return false;
-    }
-
-    private static boolean checkKnights(int position, Board board, Alliance alliance) {
-        int[] attackDirections = {-17, -15, -10, -6, 6, 10, 15, 17};
-        for(int direction : attackDirections) {
-            int potentialThreatLocation = position + direction;
-            if(BoardUtils.isValidTileCoordinate(potentialThreatLocation)) {
-                if(!((BoardUtils.FIRST_COLUMN[potentialThreatLocation] && (direction == 17 || direction == 10 || direction == -6 || direction == -15))||
-                        (BoardUtils.SECOND_COLUMN[potentialThreatLocation] && (direction == 10 || direction == -6)) ||
-                        (BoardUtils.SEVENTH_COLUMN[potentialThreatLocation] && (direction == 6 || direction == -10)) ||
-                        (BoardUtils.EIGHTH_COLUMN[potentialThreatLocation] && (direction == 15 || direction == 6 || direction == -10 || direction == -17)))) {
-                    if (board.getTile(potentialThreatLocation).isTileOccupied()) {
-                        if (board.getTile(potentialThreatLocation).getPiece().getPieceType() == PieceType.KNIGHT &&
-                                alliance != board.getTile(potentialThreatLocation).getPiece().getAlliance()) {
-                            System.out.println("Attacked from: " + potentialThreatLocation);
-                            return true;
-                        }
-                    }
-                }
-            }
-        }
-        return false;
-    }
-
-    private static boolean checkStraights(int position, Board board, Alliance alliance) {
-        int[] attackDirections = {-8, -1, 1, 8};
-        for(int direction : attackDirections) {
-            if(BoardUtils.isValidTileCoordinate(position)) {
-                int potentialThreatLocation = position + direction;
-                while (BoardUtils.isValidTileCoordinate(potentialThreatLocation)) {
-                    if ((BoardUtils.FIRST_COLUMN[potentialThreatLocation] && direction == 1) ||
-                        (BoardUtils.EIGHTH_COLUMN[potentialThreatLocation] && direction == -1)) {
-                        break;
-                    }
-                    if (board.getTile(potentialThreatLocation).isTileOccupied()) {
-                        if (alliance != board.getTile(potentialThreatLocation).getPiece().getAlliance()) {
-                            if(board.getTile(potentialThreatLocation).getPiece().getPieceType() == PieceType.QUEEN ||
-                            board.getTile(potentialThreatLocation).getPiece().getPieceType() == PieceType.ROOK) {
-                                System.out.println("Attacked from: " + potentialThreatLocation);
-                                return true;
-                            }
-                        }
-                        break;
-                    }
-                    potentialThreatLocation += direction;
-                }
-            }
-        }
-        return false;
-    }
-
-    private static boolean checkDiagonals(int position, Board board, Alliance alliance) {
-        int[] attackDirections = {-9, -7, 7, 9};
-
-        for(int direction : attackDirections) {
-            if(BoardUtils.isValidTileCoordinate(position)) {
-                int potentialThreatLocation = position + direction;
-                while (BoardUtils.isValidTileCoordinate(potentialThreatLocation)) {
-                    if ((BoardUtils.FIRST_COLUMN[potentialThreatLocation] && (direction == 9 || direction == -7)) ||
-                            (BoardUtils.EIGHTH_COLUMN[potentialThreatLocation] && (direction == 7) || direction == -9)) {
-                        break;
-                    }
-                    if (board.getTile(potentialThreatLocation).isTileOccupied()) {
-                        if (alliance != board.getTile(potentialThreatLocation).getPiece().getAlliance()) {
-                            if(board.getTile(potentialThreatLocation).getPiece().getPieceType() == PieceType.QUEEN ||
-                                    board.getTile(potentialThreatLocation).getPiece().getPieceType() == PieceType.BISHOP) {
-                                System.out.println("Attacked from: " + potentialThreatLocation);
-                                return true;
-                            }
-                        }
-                        break;
-                    }
-                    potentialThreatLocation += direction;
-                }
-            }
-        }
-        return false;
     }
 
     private King establishKing() {
@@ -152,17 +42,15 @@ public abstract class Player {
     }
 
     public boolean isInCheck() {
-        System.out.println("Checking " + this.getAlliance().toString() + " king");
-        return isTileAttacked(this.playerKing.getPiecePosition(), board, this.getAlliance());
+        return this.isInCheck;
     }
 
-    //TODO implement methods below!!!
     public boolean isInCheckMate() {
-        return isInCheck() && !hasEscapeMoves();
+        return isInCheck && !hasEscapeMoves();
     }
 
     public boolean isInStaleMate() {
-        return !isInCheck() && !hasEscapeMoves();
+        return !isInCheck && !hasEscapeMoves();
     }
 
     protected boolean hasEscapeMoves() {
@@ -182,25 +70,35 @@ public abstract class Player {
         return false;
     }
 
-    public boolean isCastled() {
-        return false;
+    public Collection<Move> getPlayerLegalMoves() {
+        return this.playerLegalMoves;
+    }
+
+    public Collection<Move> getCastleMoves() {
+        return this.castleMoves;
+    }
+
+    public static Collection<Move> calculateAttacksOnTile(int location, Collection<Move> opponentLegalMoves) {
+        List<Move> attacksOnTile = new ArrayList<>();
+        for(Move move : opponentLegalMoves) {
+            if(move.getDestinationCoordinate() == location) {
+                attacksOnTile.add(move);
+            }
+        }
+        return Collections.unmodifiableList(attacksOnTile);
     }
 
     public MoveTransition makeMove(final Move move) {
         if(move == NULL_MOVE) {
             return new MoveTransition(this.board, MoveStatus.ILLEGAL_MOVE);
         } else {
-            if (!(move.getMovedPiece().calculateLegalMoves(this.board).contains(move)) ||
-                    move.getMovedPiece().getAlliance() != board.getCurrentPlayer().getAlliance()) {
-                System.out.println("Move is illegal");
+            if (!this.playerLegalMoves.contains(move)) {
                 return new MoveTransition(this.board, MoveStatus.ILLEGAL_MOVE);
             }
             final Board transitionBoard = move.execute();
-            if (Player.isTileAttacked(transitionBoard.getCurrentPlayer().getOpponent().playerKing.getPiecePosition(), transitionBoard, transitionBoard.getCurrentPlayer().getOpponent().playerKing.getAlliance())) {
-                System.out.println("Leaves player in check");
-                return new MoveTransition(this.board, MoveStatus.LEAVES_PLAYER_IN_CHECK);
-            }
-            return new MoveTransition(transitionBoard, MoveStatus.DONE);
+            return transitionBoard.getCurrentPlayer().getOpponent().isInCheck() ?
+                new MoveTransition(this.board, MoveStatus.LEAVES_PLAYER_IN_CHECK) :
+                new MoveTransition(transitionBoard, MoveStatus.DONE);
         }
     }
 
@@ -208,6 +106,7 @@ public abstract class Player {
         return this.playerKing;
     }
 
+    public abstract Collection<Move> calculateCastleMoves(Collection<Move> playerLegalMoves, Collection<Move> opponentLegalMoves);
     public abstract Collection<Piece> getActivePieces();
     public abstract Alliance getAlliance();
     public abstract Player getOpponent();

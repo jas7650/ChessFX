@@ -40,24 +40,17 @@ public class Knight extends Piece {
                 }
                 final Tile candidateDestinationTile = board.getTile(candidateDestinationCoordinate);
                 if(!candidateDestinationTile.isTileOccupied()) {
-                    Move move = new StandardMove(board, this, candidateDestinationCoordinate);
-                    Board checkBoard = move.execute();
-                    if(!checkBoard.getCurrentPlayer().getOpponent().isInCheck()) {
-                        legalMoves.add(move);
-                    }
+                    legalMoves.add(new StandardMove(board, this, candidateDestinationCoordinate));
                 } else {
                     final Piece pieceAtDestination = candidateDestinationTile.getPiece();
                     final Alliance pieceAlliance = pieceAtDestination.getAlliance();
                     if(this.getAlliance() != pieceAlliance) {
-                        Move move = new CaptureMove(board, this, candidateDestinationCoordinate, pieceAtDestination);
-                        Board checkBoard = move.execute();
-                        if(!checkBoard.getCurrentPlayer().getOpponent().isInCheck()) {
-                            legalMoves.add(move);
-                        }
+                        legalMoves.add(new CaptureMove(board, this, candidateDestinationCoordinate, pieceAtDestination));
                     }
                 }
             }
         }
+        this.legalMoves = legalMoves;
         return Collections.unmodifiableList(legalMoves);
     }
 

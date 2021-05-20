@@ -17,17 +17,27 @@ public class Board {
     private final BlackPlayer blackPlayer;
     private final Player currentPlayer;
     private final Move transitionMove;
-    private Builder builder;
+    private Pawn enPassantPawn;
 
     public Board(Builder builder) {
         this.board = createGameBoard(builder);
         this.whitePieces = calculateActivePieces(this.board, Alliance.WHITE);
         this.blackPieces = calculateActivePieces(this.board, Alliance.BLACK);
-        this.whitePlayer = new WhitePlayer(this);
-        this.blackPlayer = new BlackPlayer(this);
+        this.enPassantPawn = builder.getEnPassantPawn();
+        final Collection<Move> whiteLegalMoves = calculateLegalMoves(this.whitePieces);
+        final Collection<Move> blackLegalMoves = calculateLegalMoves(this.blackPieces);
+        this.whitePlayer = new WhitePlayer(this, whiteLegalMoves, blackLegalMoves);
+        this.blackPlayer = new BlackPlayer(this, blackLegalMoves, whiteLegalMoves);
         this.currentPlayer = builder.nextMoveMaker.choosePlayer(this.whitePlayer, this.blackPlayer);
         this.transitionMove = builder.transitionMove != null ? builder.transitionMove : Move.MoveFactory.getNullMove();
-        this.builder = builder;
+    }
+
+    private Collection<Move> calculateLegalMoves(Collection<Piece> pieces) {
+        final List<Move> legalMoves = new ArrayList<>();
+        for(Piece piece : pieces) {
+            legalMoves.addAll(piece.calculateLegalMoves(this));
+        }
+        return legalMoves;
     }
 
     private static Collection<Piece> calculateActivePieces(List<Tile> gameBoard, Alliance alliance) {
@@ -43,8 +53,8 @@ public class Board {
         return Collections.unmodifiableList(activePieces);
     }
 
-    public Builder getBuilder() {
-        return this.builder;
+    public Pawn getEnPassantPawn() {
+        return this.enPassantPawn;
     }
 
     private static List<Tile> createGameBoard(Builder builder) {

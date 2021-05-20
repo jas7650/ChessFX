@@ -38,30 +38,19 @@ public class Rook extends Piece {
                 if (BoardUtils.isValidTileCoordinate(potentialLocation)) {
                     Tile destinationTile = board.getTile(potentialLocation);
                     if (!destinationTile.isTileOccupied()) {
-                        Move move = new StandardMove(board, this, potentialLocation);
-                        boolean hasMoved = this.getHasMoved();
-                        Board checkBoard = move.execute();
-                        if(!checkBoard.getCurrentPlayer().getOpponent().isInCheck()) {
-                            legalMoves.add(move);
-                        }
-                        this.setHasMoved(hasMoved);
+                        legalMoves.add(new StandardMove(board, this, potentialLocation));
                     } else {
                         Piece pieceAtLocation = destinationTile.getPiece();
                         Alliance alliance = pieceAtLocation.getAlliance();
                         if (alliance != this.getAlliance()) {
-                            Move move = new CaptureMove(board, this, potentialLocation, pieceAtLocation);
-                            boolean hasMoved = this.getHasMoved();
-                            Board checkBoard = move.execute();
-                            if(!checkBoard.getCurrentPlayer().getOpponent().isInCheck()) {
-                                legalMoves.add(move);
-                            }
-                            this.setHasMoved(hasMoved);
+                            legalMoves.add(new CaptureMove(board, this, potentialLocation, pieceAtLocation));
                         }
                         break;
                     }
                 }
             }
         }
+        this.legalMoves = legalMoves;
         return Collections.unmodifiableList(legalMoves);
     }
 

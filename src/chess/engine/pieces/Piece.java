@@ -15,6 +15,7 @@ public abstract class Piece {
     protected PieceType pieceType;
     protected Alliance alliance;
     protected boolean hasMoved;
+    protected Collection<Move> legalMoves;
 
     public Piece(PieceType pieceType, int position, Alliance alliance) {
         this.pieceType = pieceType;
@@ -46,6 +47,14 @@ public abstract class Piece {
     public abstract Collection<Move> calculateLegalMoves(final Board board);
 
     public abstract Piece movePiece(Move move);
+
+    public Collection<Move> getLegalMoves() {
+        return this.legalMoves;
+    }
+
+    public void setLegalMoves(Collection<Move> legalMovesWithoutCheck) {
+        this.legalMoves = legalMovesWithoutCheck;
+    }
 
     public enum PieceType {
         PAWN("P") {

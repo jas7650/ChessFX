@@ -105,60 +105,8 @@ public abstract class Move {
             builder.setPiece(piece);
         }
         builder.setPiece(this.piece.movePiece(this));
-        this.getMovedPiece().setHasMoved(true);
         builder.setMoveMaker(this.board.getCurrentPlayer().getOpponent().getAlliance());
         return builder.build();
-    }
-
-    public int getMoveDirection() {
-        int[] bishopDirections = {7, 9};
-        int[] knightDirections = {6, 10, 15, 17};
-        int distance = this.getDestinationCoordinate() - this.getCurrentCoordinate();
-        int col1 = this.getCurrentCoordinate() % 8;
-        int row1 = (this.getCurrentCoordinate() - col1) / 8;
-
-        int col2 = this.getDestinationCoordinate() % 8;
-        int row2 = (this.getDestinationCoordinate() - col2) / 8;
-        int moveDirection = 0;
-        PieceType pieceType = this.getMovedPiece().getPieceType();
-
-        if(pieceType != PieceType.KNIGHT) {
-            if(row1 == row2) {
-                if(col1 > col2) {
-                    return -1;
-                } else {
-                    return 1;
-                }
-            } else if(row1 > row2) {
-                if (col1 > col2) {
-                    return -9;
-                } else if(col1 < col2) {
-                    return -7;
-                } else {
-                    return -8;
-                }
-            } else {
-                if(col1 > col2) {
-                    return 7;
-                } else if(col1 < col2) {
-                    return 9;
-                } else {
-                    return 8;
-                }
-            }
-        }
-        else {
-            for(int direction: knightDirections) {
-                if(Math.abs(distance) % direction == 0) {
-                    moveDirection = direction;
-                    break;
-                }
-            }
-        }
-        if(distance < 0) {
-            moveDirection = moveDirection*-1;
-        }
-        return moveDirection;
     }
 
     public static class StandardMove extends Move {
@@ -188,7 +136,6 @@ public abstract class Move {
                 }
             }
             builder.setPiece(this.piece.movePiece(this));
-            this.getMovedPiece().setHasMoved(true);
             builder.setMoveMaker(this.board.getCurrentPlayer().getOpponent().getAlliance());
             return builder.build();
         }
@@ -338,7 +285,6 @@ public abstract class Move {
                 builder.setPiece(piece);
             }
             final Pawn movedPawn = (Pawn) this.piece.movePiece(this);
-            movedPawn.setHasMoved(true);
             builder.setPiece(movedPawn);
             builder.setEnPassantPawn(movedPawn);
             builder.setMoveMaker(this.board.getCurrentPlayer().getOpponent().getAlliance());
@@ -394,8 +340,6 @@ public abstract class Move {
             for (final Piece piece : this.board.getCurrentPlayer().getOpponent().getActivePieces()) {
                 builder.setPiece(piece);
             }
-            this.getCastleRook().setHasMoved(true);
-            this.getMovedPiece().setHasMoved(true);
             builder.setPiece(this.piece.movePiece(this));
             builder.setPiece(new Rook(this.castleRookDestination, this.castleRook.getAlliance()));
             builder.setMoveMaker(this.board.getCurrentPlayer().getOpponent().getAlliance());
@@ -445,7 +389,7 @@ public abstract class Move {
 
         @Override
         public Board execute() {
-            throw new RuntimeException("cannot execute the null com.chess.engine.move!");
+            throw new RuntimeException("cannot execute a null move");
         }
     }
 
@@ -456,7 +400,15 @@ public abstract class Move {
         }
 
         public static Move createMove(Board board, int currentPosition, int destinationPosition) {
-            for(final Move move : board.getTile(currentPosition).getPiece().calculateLegalMoves(board)) {
+            if(board.getTile(currentPosition).getPiece().getPieceType() == PieceType.KING) {
+                for(final Move move : board.getCurrentPlayer().getCastleMoves()) {
+                    if(move.getCurrentCoordinate() == currentPosition &&
+                            move.getDestinationCoordinate() == destinationPosition) {
+                        return move;
+                    }
+                }
+            }
+            for(final Move move : board.getCurrentPlayer().getPlayerLegalMoves()) {
                 if(move.getCurrentCoordinate() == currentPosition &&
                         move.getDestinationCoordinate() == destinationPosition) {
                     return move;
@@ -466,7 +418,7 @@ public abstract class Move {
         }
 
         public static Move createPromotionMove(Board board, int currentPosition, int destinationPosition, PieceType pieceType) {
-            for(final Move move : board.getTile(currentPosition).getPiece().calculateLegalMoves(board)) {
+            for(final Move move : board.getCurrentPlayer().getPlayerLegalMoves()) {
                 if(move.getCurrentCoordinate() == currentPosition &&
                         move.getDestinationCoordinate() == destinationPosition &&
                         move.getChosenType() == pieceType) {
