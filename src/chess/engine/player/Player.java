@@ -2,13 +2,11 @@ package chess.engine.player;
 
 import chess.engine.Alliance;
 import chess.engine.board.Board;
-import chess.engine.board.BoardUtils;
 import chess.engine.move.Move;
 import chess.engine.move.MoveStatus;
 import chess.engine.move.MoveTransition;
 import chess.engine.pieces.King;
 import chess.engine.pieces.Piece;
-import chess.engine.pieces.Piece.PieceType;
 
 import java.util.*;
 
@@ -46,25 +44,18 @@ public abstract class Player {
     }
 
     public boolean isInCheckMate() {
-        return isInCheck && !hasEscapeMoves();
+        return isInCheck && !hasLegalMove();
     }
 
     public boolean isInStaleMate() {
-        return !isInCheck && !hasEscapeMoves();
+        return !isInCheck && !hasLegalMove();
     }
 
-    protected boolean hasEscapeMoves() {
-        int[] moveDirections = {-9, -8, -7, -1, 1, 7, 8, 9};
-        for(int direction : moveDirections) {
-            int destination = this.playerKing.getPiecePosition() + direction;
-            if(BoardUtils.isValidTileCoordinate(destination)) {
-                if(!board.getTile(destination).isTileOccupied()) {
-                    Move move = Move.MoveFactory.createMove(board, this.playerKing.getPiecePosition(), destination);
-                    MoveTransition moveTransition = board.getCurrentPlayer().makeMove(move);
-                    if(moveTransition.getMoveStatus().isDone()) {
-                        return true;
-                    }
-                }
+    protected boolean hasLegalMove() {
+        for(Move move : this.getPlayerLegalMoves()) {
+            MoveTransition transition = this.makeMove(move);
+            if(transition.getMoveStatus().isDone()) {
+                return true;
             }
         }
         return false;

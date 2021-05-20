@@ -31,7 +31,6 @@ public class WhitePlayer extends Player{
                             Player.calculateAttacksOnTile(62, opponentLegalMoves).isEmpty() &&
                             rookTile.getPiece().getPieceType().isRook()) {
                         kingCastles.add(new Move.KingSideCastleMove(this.board, this.getPlayerKing(), 62, (Rook) rookTile.getPiece(), rookTile.getLocation(), 61));
-                        System.out.println("White King side castle created");
                     }
                 }
             }
@@ -46,7 +45,6 @@ public class WhitePlayer extends Player{
                             Player.calculateAttacksOnTile(57, opponentLegalMoves).isEmpty() &&
                             rookTile.getPiece().getPieceType().isRook()) {
                         kingCastles.add(new QueenSideCastleMove(this.board, this.getPlayerKing(), 58, (Rook) rookTile.getPiece(), rookTile.getLocation(), 59));
-                        System.out.println("White Queen side castle created");
                     }
                 }
             }

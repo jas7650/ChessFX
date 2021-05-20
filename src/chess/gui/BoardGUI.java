@@ -316,18 +316,18 @@ public class BoardGUI extends Application{
     private void kingInCheck(Board board) {
         Rectangle rectangle;
         if(board.playerInCheck(board.getBlackPlayer()) || board.playerInCheck(board.getWhitePlayer())) {
-            if(board.getCurrentPlayer().isInCheckMate()) {
-                System.out.println("Checkmate");
-            }
             if(board.getCurrentPlayer().isInCheck()) {
-                System.out.println("Check");
+                string = board.getPlayerInCheck().getAlliance().toString() + " is in check";
+            }
+            if(board.getCurrentPlayer().isInCheckMate()) {
+                string = board.getPlayerInCheck().getAlliance().toString() + " is in checkmate";
             }
             checkLocation = board.getPlayerInCheck().getPlayerKing().getPiecePosition();
             rectangle = (Rectangle)tiles.getChildren().get(checkLocation);
             rectangle.setFill(Color.RED);
         } else {
             if(board.getCurrentPlayer().isInStaleMate()) {
-                System.out.println("Stalemate");
+                string = "The game has ended in a stalemate";
             }
             rectangle = (Rectangle)tiles.getChildren().get(checkLocation);
             rectangle.setFill(BoardUtils.TILE_COLORS[checkLocation]);
