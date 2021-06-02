@@ -6,16 +6,8 @@ import chess.engine.board.BoardUtils;
 import chess.engine.board.Tile;
 import chess.engine.move.Move;
 import chess.engine.move.Move.CaptureMove;
-import chess.engine.move.Move.KingSideCastleMove;
-import chess.engine.move.Move.QueenSideCastleMove;
 import chess.engine.move.Move.StandardMove;
-import chess.engine.move.MoveTransition;
-import chess.engine.player.Player;
-import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;

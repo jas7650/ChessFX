@@ -24,7 +24,7 @@ import javafx.stage.Stage;
 import java.io.FileNotFoundException;
 import java.util.Collection;
 
-public class BoardGUI extends Application{
+public class BoardGUI {
     private int firstLocation = -1;
     private int secondLocation = -1;
     private Tile sourceTile = null;
@@ -32,7 +32,6 @@ public class BoardGUI extends Application{
     private StackPane stackPane;
     private String string = "";
     private Text text = new Text();
-    private Stage primaryStage;
     private Board[] boards = new Board[1];
     private TilePane tiles = new TilePane();
     private TilePane pieces = new TilePane();
@@ -41,11 +40,13 @@ public class BoardGUI extends Application{
     private BorderPane borderPane;
     private PieceType promotionPieceType = null;
     private boolean isInPromotionSequence = false;
+    private Scene gameScene;
 
-    @Override
-    public void start(Stage primaryStage) throws Exception{
-        this.primaryStage = primaryStage;
-        primaryStage.setTitle("Chess Game");
+    public BoardGUI() {
+
+    }
+
+    public Scene createBoardScene() throws FileNotFoundException {
         Board board = Board.createStartingGameBoard();
         boards[0] = board;
         tiles = drawTiles();
@@ -56,7 +57,7 @@ public class BoardGUI extends Application{
         borderPane.setCenter(stackPane);
         text.setText(string);
         borderPane.setTop(text);
-        Scene scene = newScene(borderPane);
+        this.gameScene = new Scene(borderPane);
 
         pieces.setOnMouseClicked(e -> {
             int col = (int) e.getX() / 100;
@@ -75,9 +76,7 @@ public class BoardGUI extends Application{
 
             text.setText(string);
         });
-
-        primaryStage.setScene(scene);
-        primaryStage.show();
+        return this.gameScene;
     }
 
     private void leftClickEvent(Board lastBoard, int location) throws FileNotFoundException {
@@ -237,10 +236,6 @@ public class BoardGUI extends Application{
         removeLegalMoves();
     }
 
-    private Scene newScene(BorderPane borderPane) {
-        return new Scene(borderPane);
-    }
-
     private void movePiece(Board board, Move move) throws FileNotFoundException {
         Image image;
         image = board.getTile(move.getDestinationCoordinate()).getPiece().getPieceType().getImage(board.getTile(move.getDestinationCoordinate()).getPiece().getAlliance());
@@ -361,7 +356,6 @@ public class BoardGUI extends Application{
         tilePane.setVgap(0);
         tilePane.setPrefTileHeight(100);
         tilePane.setPrefTileWidth(100);
-
         for(int location = 0; location < 64; location++) {
             if(board.getTile(location).isTileOccupied()) {
                 Image image;
@@ -379,7 +373,9 @@ public class BoardGUI extends Application{
         return tilePane;
     }
 
-    public static void main(String[] args) {
-        launch(args);
-    }
+    /*TODO add move tracking to allow for a player to look back at previous moves and move forward until the current status of the board
+        add home page that allows a player to select between a game against the AI and analysis by themselves
+        add piece capture tracking in the game page that shows what pieces a player has captured
+        add AI player functionality. Get very basic version working first and then improve play
+     */
 }

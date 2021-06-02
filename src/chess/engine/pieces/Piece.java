@@ -48,14 +48,6 @@ public abstract class Piece {
 
     public abstract Piece movePiece(Move move);
 
-    public Collection<Move> getLegalMoves() {
-        return this.legalMoves;
-    }
-
-    public void setLegalMoves(Collection<Move> legalMovesWithoutCheck) {
-        this.legalMoves = legalMovesWithoutCheck;
-    }
-
     public enum PieceType {
         PAWN("P") {
             @Override

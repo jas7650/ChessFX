@@ -13,7 +13,7 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 
-public class BlackPlayer extends Player{
+public class BlackPlayer extends Player {
 
     public BlackPlayer(final Board board, final Collection<Move> playerLegalMoves, final Collection<Move> opponentLegalMoves) {
         super(board, playerLegalMoves, opponentLegalMoves);

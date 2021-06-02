@@ -12,7 +12,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 
-public class WhitePlayer extends Player{
+public class WhitePlayer extends Player {
 
 
     public WhitePlayer(final Board board, final Collection<Move> playerLegalMoves, final Collection<Move> opponentLegalMoves) {

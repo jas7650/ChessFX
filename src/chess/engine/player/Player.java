@@ -88,8 +88,8 @@ public abstract class Player {
             }
             final Board transitionBoard = move.execute();
             return transitionBoard.getCurrentPlayer().getOpponent().isInCheck() ?
-                new MoveTransition(this.board, MoveStatus.LEAVES_PLAYER_IN_CHECK) :
-                new MoveTransition(transitionBoard, MoveStatus.DONE);
+                    new MoveTransition(this.board, MoveStatus.LEAVES_PLAYER_IN_CHECK) :
+                    new MoveTransition(transitionBoard, MoveStatus.DONE);
         }
     }
 

@@ -13,6 +13,8 @@ public class Board {
     private List<Tile> board;
     private final Collection<Piece> whitePieces;
     private final Collection<Piece> blackPieces;
+//    private final Collection<Piece> blackCapturedPieces;
+//    private final Collection<Piece> whiteCapturedPieces;
     private final WhitePlayer whitePlayer;
     private final BlackPlayer blackPlayer;
     private final Player currentPlayer;
@@ -51,6 +53,13 @@ public class Board {
             }
         }
         return Collections.unmodifiableList(activePieces);
+    }
+
+    public static Collection<Piece> addWhiteCapturedPiece(Piece piece) {
+        return null;
+    }
+    public static Collection<Piece> addBlackCapturedPiece(Piece piece) {
+        return null;
     }
 
     public Pawn getEnPassantPawn() {
