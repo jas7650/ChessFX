@@ -51,8 +51,13 @@ public class Queen extends Piece {
     }
 
     @Override
-    public Piece movePiece(Move move) {
+    public Queen movePiece(Move move) {
         return new Queen(move.getDestinationCoordinate(), move.getMovedPiece().getAlliance());
+    }
+
+    @Override
+    public Queen unMovePiece(Move move) {
+        return new Queen(move.getCurrentCoordinate(), move.getMovedPiece().getAlliance());
     }
 
     private static boolean isFirstColumnExclusion(final int currentPosition, final int candidateOffset) {

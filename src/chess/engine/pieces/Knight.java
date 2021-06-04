@@ -50,8 +50,13 @@ public class Knight extends Piece {
     }
 
     @Override
-    public Piece movePiece(Move move) {
+    public Knight movePiece(Move move) {
         return new Knight(move.getDestinationCoordinate(), move.getMovedPiece().getAlliance());
+    }
+
+    @Override
+    public Knight unMovePiece(Move move) {
+        return new Knight(move.getCurrentCoordinate(), move.getMovedPiece().getAlliance());
     }
 
     private static boolean isFirstColumnExclusion(final int currentPosition, final int candidateOffset){

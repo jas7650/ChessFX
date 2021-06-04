@@ -7,8 +7,6 @@ import chess.engine.pieces.Piece;
 import chess.engine.pieces.Piece.PieceType;
 import chess.engine.pieces.Rook;
 
-import java.io.FileNotFoundException;
-
 public abstract class Move {
 
     protected int endPosition;
@@ -21,6 +19,10 @@ public abstract class Move {
         this.board = board;
         this.endPosition = endPosition;
         this.piece = piece;
+    }
+
+    public Board getBoard() {
+        return this.board;
     }
 
     public int getCastleRookStart() {
@@ -109,6 +111,21 @@ public abstract class Move {
         return builder.build();
     }
 
+    public Board unExecute() {
+        final Builder builder = new Builder();
+        for(Piece piece : this.board.getCurrentPlayer().getActivePieces()) {
+            if(!this.piece.equals(piece)) {
+                builder.setPiece(piece);
+            }
+        }
+        for(Piece piece : this.board.getCurrentPlayer().getOpponent().getActivePieces()) {
+            builder.setPiece(piece);
+        }
+        builder.setPiece(this.piece.unMovePiece(this));
+        builder.setMoveMaker(this.board.getCurrentPlayer().getOpponent().getAlliance());
+        return builder.build();
+    }
+
     public static class StandardMove extends Move {
         public StandardMove(Board board, Piece piece, int endPosition) {
             super(board, piece, endPosition);
@@ -136,6 +153,23 @@ public abstract class Move {
                 }
             }
             builder.setPiece(this.piece.movePiece(this));
+            builder.setMoveMaker(this.board.getCurrentPlayer().getOpponent().getAlliance());
+            return builder.build();
+        }
+
+        @Override
+        public Board unExecute() {
+            final Builder builder = new Builder();
+            for(final Piece piece : this.board.getCurrentPlayer().getActivePieces()) {
+                if(!this.piece.equals(piece)) {
+                    builder.setPiece(piece);
+                }
+            }
+            for(final Piece piece : this.board.getCurrentPlayer().getOpponent().getActivePieces()) {
+                builder.setPiece(piece);
+            }
+            builder.setPiece(this.getAttackedPiece());
+            builder.setPiece(this.piece.unMovePiece(this));
             builder.setMoveMaker(this.board.getCurrentPlayer().getOpponent().getAlliance());
             return builder.build();
         }
@@ -184,6 +218,24 @@ public abstract class Move {
 
         @Override
         public Board execute() {
+            final Builder builder = new Builder();
+            for(final Piece piece : this.board.getCurrentPlayer().getActivePieces()) {
+                if(!this.piece.equals(piece)) {
+                    builder.setPiece(piece);
+                }
+            }
+            for(final Piece piece : this.board.getCurrentPlayer().getOpponent().getActivePieces()) {
+                builder.setPiece(piece);
+            }
+            final Pawn movedPawn = (Pawn) this.piece.movePiece(this);
+            final Piece newPiece = movedPawn.promotePiece(this, chosenType);
+            builder.setPiece(newPiece);
+            builder.setMoveMaker(this.board.getCurrentPlayer().getOpponent().getAlliance());
+            return builder.build();
+        }
+
+        @Override
+        public Board unExecute() {
             final Builder builder = new Builder();
             for(final Piece piece : this.board.getCurrentPlayer().getActivePieces()) {
                 if(!this.piece.equals(piece)) {
@@ -342,6 +394,25 @@ public abstract class Move {
             }
             builder.setPiece(this.piece.movePiece(this));
             builder.setPiece(new Rook(this.castleRookDestination, this.castleRook.getAlliance()));
+            builder.setMoveMaker(this.board.getCurrentPlayer().getOpponent().getAlliance());
+            return builder.build();
+        }
+
+        public Board unExecute() {
+            final Builder builder = new Builder();
+            for(Piece piece : this.board.getCurrentPlayer().getActivePieces()) {
+                if(!this.piece.equals(piece)) {
+                    builder.setPiece(piece);
+                }
+            }
+            for(Piece piece : this.board.getCurrentPlayer().getOpponent().getActivePieces()) {
+                if(!piece.equals(this.getCastleRook())) {
+                    builder.setPiece(piece);
+                }
+            }
+            Rook rook = new Rook(this.getCastleRookStart(), this.board.getCurrentPlayer().getAlliance());
+            builder.setPiece(rook);
+            builder.setPiece(this.piece.unMovePiece(this));
             builder.setMoveMaker(this.board.getCurrentPlayer().getOpponent().getAlliance());
             return builder.build();
         }

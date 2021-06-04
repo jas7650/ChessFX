@@ -93,6 +93,14 @@ public abstract class Player {
         }
     }
 
+    public Board executeMove(final Move move) {
+        return move.execute();
+    }
+
+    public Board unMakeMove(final Move move) {
+        return move.unExecute();
+    }
+
     public King getPlayerKing() {
         return this.playerKing;
     }

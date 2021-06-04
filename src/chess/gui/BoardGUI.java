@@ -1,6 +1,7 @@
 package chess.gui;
 
 import chess.engine.Alliance;
+import chess.engine.Game;
 import chess.engine.board.Board;
 import chess.engine.board.BoardUtils;
 import chess.engine.board.Tile;
@@ -9,8 +10,8 @@ import chess.engine.move.Move.MoveFactory;
 import chess.engine.move.MoveTransition;
 import chess.engine.pieces.Piece;
 import chess.engine.pieces.Piece.PieceType;
-import javafx.application.Application;
 import javafx.scene.Scene;
+import javafx.scene.control.Button;
 import javafx.scene.effect.Glow;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
@@ -19,7 +20,6 @@ import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Rectangle;
 import javafx.scene.text.Text;
-import javafx.stage.Stage;
 
 import java.io.FileNotFoundException;
 import java.util.Collection;
@@ -41,9 +41,12 @@ public class BoardGUI {
     private PieceType promotionPieceType = null;
     private boolean isInPromotionSequence = false;
     private Scene gameScene;
+    private Game game;
+    private int moveNumber;
 
-    public BoardGUI() {
-
+    public BoardGUI(Game game) {
+        this.game = game;
+        this.moveNumber = 0;
     }
 
     public Scene createBoardScene() throws FileNotFoundException {
@@ -58,6 +61,22 @@ public class BoardGUI {
         text.setText(string);
         borderPane.setTop(text);
         this.gameScene = new Scene(borderPane);
+        HBox moveButtons = new HBox();
+
+        Button previousMoveButton = new Button();
+        previousMoveButton.setText("<");
+        previousMoveButton.setOnMouseClicked(e -> {
+            previousMove();
+        });
+
+        Button nextMoveButton = new Button();
+        nextMoveButton.setText(">");
+        nextMoveButton.setOnMouseClicked(e -> {
+            Board currentBoard = boards[0];
+            nextMove(currentBoard);
+        });
+        moveButtons.getChildren().addAll(previousMoveButton, nextMoveButton);
+        borderPane.setBottom(moveButtons);
 
         pieces.setOnMouseClicked(e -> {
             int col = (int) e.getX() / 100;
@@ -199,6 +218,31 @@ public class BoardGUI {
         stackPane.getChildren().add(stackPane1);
     }
 
+    private void previousMove() {
+        if(moveNumber == 0) {
+            return;
+        }
+        Move moveToUndo = game.getMove(this.moveNumber-1);
+        try {
+            unMovePiece(moveToUndo);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    private void nextMove(Board currentBoard) {
+        if(moveNumber == game.getNumMovesMade()) {
+            return;
+        }
+        Move moveToDo = game.getMove(this.moveNumber);
+        Board nextBoard = currentBoard.getCurrentPlayer().executeMove(moveToDo);
+        try {
+            movePiece(nextBoard, moveToDo);
+        } catch (FileNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
     private void tryMove(Board lastBoard, Move move) {
         string = "Second: " + secondLocation;
         MoveTransition transition = lastBoard.getCurrentPlayer().makeMove(move);
@@ -206,10 +250,6 @@ public class BoardGUI {
             Board nextBoard = transition.getTransitionBoard();
             try {
                 movePiece(nextBoard, move);
-                kingInCheck(nextBoard);
-                removeLegalMoves();
-                removePieceHighlight(firstLocation);
-                boards[0] = nextBoard;
             } catch (FileNotFoundException ex) {
                 ex.printStackTrace();
             }
@@ -218,11 +258,14 @@ public class BoardGUI {
         } else {
             string = "Move is illegal";
         }
-        removePieceHighlight(firstLocation);
+        if(firstLocation != -1) {
+            removePieceHighlight(firstLocation);
+        }
         firstLocation = -1;
         secondLocation = -1;
         sourceTile = null;
         removeLegalMoves();
+        this.game.addMove(move);
     }
 
     private void rightClickEvent() {
@@ -237,12 +280,19 @@ public class BoardGUI {
     }
 
     private void movePiece(Board board, Move move) throws FileNotFoundException {
-        Image image;
-        image = board.getTile(move.getDestinationCoordinate()).getPiece().getPieceType().getImage(board.getTile(move.getDestinationCoordinate()).getPiece().getAlliance());
-        ImageView imageView = new ImageView(image);
-        imageView.setFitHeight(100);
-        imageView.setFitWidth(100);
-        pieces.getChildren().set(move.getDestinationCoordinate(), imageView);
+        if(move.isPromotionMove()) {
+            Image image = move.getChosenType().getImage(move.getMovedPiece().getAlliance());
+            ImageView imageView = new ImageView(image);
+            imageView.setFitHeight(100);
+            imageView.setFitWidth(100);
+            pieces.getChildren().set(move.getDestinationCoordinate(), imageView);
+        } else {
+            Image image = move.getMovedPiece().getPieceType().getImage(move.getMovedPiece().getAlliance());
+            ImageView imageView = new ImageView(image);
+            imageView.setFitHeight(100);
+            imageView.setFitWidth(100);
+            pieces.getChildren().set(move.getDestinationCoordinate(), imageView);
+        }
 
         Rectangle rectangle = new Rectangle();
         rectangle.setVisible(false);
@@ -260,7 +310,7 @@ public class BoardGUI {
             rectangle1.setVisible(false);
             pieces.getChildren().add(move.getCastleRookStart(), rectangle1);
             pieces.getChildren().remove(move.getCastleRookDestination());
-            Image rookImage = board.getTile(move.getCastleRookDestination()).getPiece().getPieceType().getImage(board.getTile(move.getCastleRookDestination()).getPiece().getAlliance());
+            Image rookImage = PieceType.ROOK.getImage(move.getCastleRook().getAlliance());
             ImageView rookView = new ImageView(rookImage);
             rookView.setFitWidth(100);
             rookView.setFitHeight(100);
@@ -268,6 +318,48 @@ public class BoardGUI {
             move.getCastleRook().setHasMoved(true);
         }
         move.getMovedPiece().setHasMoved(true);
+        boards[0] = board;
+        kingInCheck(board);
+        this.moveNumber++;
+    }
+
+    private void unMovePiece(Move move) throws FileNotFoundException {
+        Image image = move.getMovedPiece().getPieceType().getImage(move.getMovedPiece().getAlliance());
+        ImageView imageView = new ImageView(image);
+        imageView.setFitHeight(100);
+        imageView.setFitWidth(100);
+        pieces.getChildren().set(move.getCurrentCoordinate(), imageView);
+        Rectangle rectangle = new Rectangle();
+        rectangle.setVisible(false);
+        if(move.isAttack()) {
+            ImageView imageView1 = new ImageView(move.getAttackedPiece().getPieceType().getImage(move.getAttackedPiece().getAlliance()));
+            imageView1.setFitHeight(100);
+            imageView1.setFitWidth(100);
+            pieces.getChildren().set(move.getDestinationCoordinate(), imageView1);
+        } else {
+
+            pieces.getChildren().set(move.getDestinationCoordinate(), rectangle);
+        }
+        if(move.isEnPassantMove()) {
+            ImageView imageView1 = new ImageView(move.getAttackedPiece().getPieceType().getImage(move.getAttackedPiece().getAlliance()));
+            imageView1.setFitHeight(100);
+            imageView1.setFitWidth(100);
+            pieces.getChildren().set(move.getDestinationCoordinate(), rectangle);
+            pieces.getChildren().set(move.getAttackedPiece().getPiecePosition(), imageView1);
+        }
+
+        if(move.isCastlingMove()) {
+            Rectangle rectangle1 = new Rectangle();
+            rectangle1.setVisible(false);
+            pieces.getChildren().set(move.getCastleRookDestination(), rectangle1);
+            Image rookImage = PieceType.ROOK.getImage(move.getCastleRook().getAlliance());
+            ImageView rookView = new ImageView(rookImage);
+            rookView.setFitWidth(100);
+            rookView.setFitHeight(100);
+            pieces.getChildren().set(move.getCastleRookStart(), rookView);
+        }
+        move.getMovedPiece().setHasMoved(true);
+        this.moveNumber--;
     }
 
     private void highlightSelectedTile(int location) {
@@ -373,8 +465,7 @@ public class BoardGUI {
         return tilePane;
     }
 
-    /*TODO add move tracking to allow for a player to look back at previous moves and move forward until the current status of the board
-        add home page that allows a player to select between a game against the AI and analysis by themselves
+    /*TODO add home page that allows a player to select between a game against the AI and analysis by themselves
         add piece capture tracking in the game page that shows what pieces a player has captured
         add AI player functionality. Get very basic version working first and then improve play
      */

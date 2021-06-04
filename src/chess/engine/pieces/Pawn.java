@@ -149,8 +149,13 @@ public class Pawn extends Piece {
     }
 
     @Override
-    public Piece movePiece(Move move) {
+    public Pawn movePiece(Move move) {
         return new Pawn(move.getDestinationCoordinate(), move.getMovedPiece().getAlliance());
+    }
+
+    @Override
+    public Pawn unMovePiece(Move move) {
+        return new Pawn(move.getCurrentCoordinate(), move.getMovedPiece().getAlliance());
     }
 
     public Piece promotePiece(Move move, PieceType chosenType) {

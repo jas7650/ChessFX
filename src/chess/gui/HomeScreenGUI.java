@@ -4,19 +4,18 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
-import javafx.scene.effect.ColorInput;
 import javafx.scene.layout.*;
 import javafx.scene.paint.Color;
-import javafx.scene.paint.Paint;
 import javafx.scene.text.Font;
 import javafx.scene.text.Text;
-import javafx.scene.text.TextAlignment;
 
 public class HomeScreenGUI {
     private Scene homeScreenScene;
     private BorderPane borderPane;
+    private ChessEngineGUI chessEngineGUI;
 
-    public HomeScreenGUI() {
+    public HomeScreenGUI(ChessEngineGUI chessEngineGUI) {
+        this.chessEngineGUI = chessEngineGUI;
         createHomeScreenScene();
     }
 
@@ -41,7 +40,7 @@ public class HomeScreenGUI {
         Button newGame = new Button();
         newGame.setText("New Game");
         newGame.setOnMouseClicked(e -> {
-            ChessEngineGUI.changeToGameScreen();
+            this.chessEngineGUI.newGame();
         });
         vBox.getChildren().add(newGame);
         return vBox;
